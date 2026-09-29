@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Family Hub</title>
+<style>
+:root{--accent:#4A90D9;--bg:#F7F7FA;--card:#FFFFFF;--text:#1A1A1E;--text2:#6B6B73;--border:#E2E2E7;--success:#34C759;--danger:#FF3B30;--radius:14px;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0B0B0D;--card:#1E1E20;--text:#F5F5F7;--text2:#9A9AA2;--border:#2C2C2E;}}
+:root[data-theme="dark"]{--bg:#0B0B0D;--card:#1E1E20;--text:#F5F5F7;--text2:#9A9AA2;--border:#2C2C2E;}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+body{background:var(--bg);color:var(--text);}
+#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;position:relative;background:var(--bg);}
+.header{padding:18px 16px 4px;flex-shrink:0;}
+.header h1{margin:0;font-size:24px;font-weight:700;}
+.header p{margin:4px 0 0;color:var(--text2);font-size:13px;}
+.content{flex:1;overflow-y:auto;padding:0 16px 24px;}
+.section-title{font-size:18px;font-weight:700;margin:16px 0 8px;}
+.card{background:var(--card);border-radius:var(--radius);padding:13px;margin-bottom:8px;box-shadow:0 2px 6px rgba(0,0,0,.06);}
+.row{display:flex;align-items:center;gap:10px;}
+.empty{text-align:center;padding:32px 16px;color:var(--text2);}
+.empty .icon{font-size:36px;display:block;margin-bottom:6px;}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;color:#fff;}
+.muted{color:var(--text2);font-size:12.5px;}
+.tabbar{display:flex;border-top:1px solid var(--border);background:var(--card);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+.tab{flex:1;text-align:center;padding:8px 0 6px;background:none;border:none;color:var(--text2);font-size:9.5px;cursor:pointer;font-family:inherit;}
+.tab.active{color:var(--accent);}
+.tab .ti{font-size:18px;display:block;line-height:1;margin-bottom:2px;}
+.fab{position:absolute;right:16px;bottom:68px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;border:none;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;}
+.check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;}
+.check.done{background:var(--success);border-color:var(--success);}
+.taskTitle.done{text-decoration:line-through;color:var(--text2);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:50;}
+.modal{background:var(--card);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));max-height:85vh;overflow-y:auto;}
+.modal h2{margin:0 0 14px;font-size:20px;}
+label{font-size:13px;color:var(--text2);display:block;margin:10px 0 4px;}
+input,select{width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;}
+.btn{width:100%;padding:13px;border-radius:12px;border:none;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:14px;}
+.btn.primary{background:var(--accent);color:#fff;}
+.btn.ghost{background:none;color:var(--text2);}
+.swatches{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.swatch.sel{border-color:var(--text);}
+.iconbtn{background:none;border:none;color:var(--text2);font-size:17px;cursor:pointer;padding:4px;}
+.onb{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:32px;text-align:center;}
+.onb h1{font-size:30px;margin:0 0 8px;}
+.onb p{color:var(--text2);margin:0 0 28px;}
+.onb input{margin-bottom:12px;}
+.addbtn{background:none;border:none;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;}
+.tsrow{display:flex;justify-content:space-between;align-items:center;}
+.calhead{display:flex;justify-content:space-between;align-items:center;margin:4px 0 8px;font-weight:600;}
+.calnav{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:0 10px;}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;}
+.calwd{font-size:10.5px;color:var(--text2);padding:4px 0;}
+.calday{padding:8px 0;border-radius:8px;font-size:13.5px;cursor:pointer;}
+.calday:not(.empty):hover{background:var(--bg);}
+.calday.sel{background:var(--accent);color:#fff;}
+.calday.empty{cursor:default;}
+.quickrow{display:flex;gap:8px;margin:12px 0 2px;flex-wrap:wrap;}
+.qbtn{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);cursor:pointer;font-family:inherit;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const KEY='familyhub_state_v2';
+const COLORS=['#4A90D9','#F5A623','#7ED321','#D0021B','#9013FE','#50E3C2','#F8586B'];
+const EVENT_CATS={personal:'Личное',work:'Работа',family:'Семья',birthday:'День рождения',holiday:'Праздник',meeting:'Встреча',trip:'Поездка',other:'Другое'};
+const EVENT_ICON={personal:'👤',work:'💼',family:'🏠',birthday:'🎂',holiday:'✨',meeting:'👥',trip:'✈️',other:'📌'};
+const SHIFT_TYPES={work:'Работа',dayOff:'Выходной',vacation:'Отпуск',sickLeave:'Больничный',remote:'Удалённо'};
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){console.error(e);}return{family:null,members:[],tasks:[],events:[],shifts:[],customRoles:[]};}
+const BASE_ROLES=['Родитель','Ребёнок','Другое'];
+function roleLabel(r){const legacy={parent:'Родитель',child:'Ребёнок',other:'Другое'};return legacy[r]||r;}
+function allRoles(){const custom=(state.customRoles||[]).filter(r=>!BASE_ROLES.includes(r));return [...BASE_ROLES,...custom];}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){console.error(e);}}
+let state=load();
+if(!state.customRoles) state.customRoles=[];
+let tab='dashboard', modal=null, pickedColor=COLORS[0];
+let selectedDates=new Set();
+let modalMemberSel=null, modalTypeSel='work';
+let modalRoleValue='Родитель', modalCustomRole='';
+const NOW=new Date();
+let calYear=NOW.getFullYear(), calMonth=NOW.getMonth();
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const initials=n=>(n.trim()[0]||'?').toUpperCase();
+function greeting(){const h=new Date().getHours();if(h<12)return'Доброе утро';if(h<18)return'Добрый день';if(h<23)return'Добрый вечер';return'Доброй ночи';}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function todayStr(){return new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});}
+function fmtDate(d){return d?new Date(d+'T00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):'';}
+function isOverdue(t){return t.due && t.status!=='done' && t.due<todayISO();}
+
+function render(){
+  const app=document.getElementById('app');
+  if(!state.family){app.innerHTML=onboardingView();return;}
+  const titles={dashboard:greeting()+' 👋',calendar:'Календарь',work:'Работа',tasks:'Задачи',family:'Семья'};
+  app.innerHTML=`<div class="header"><h1>${titles[tab]}</h1>${tab==='dashboard'?`<p>${todayStr()}</p>`:''}</div>
+    <div class="content">${
+      tab==='dashboard'?dashboardView():tab==='calendar'?calendarView():tab==='work'?workView():tab==='tasks'?tasksView():familyView()
+    }</div>
+    <button class="fab" title="Добавить" onclick="openAdd()">+</button>
+    <div class="tabbar">
+      ${tabBtn('dashboard','🏠','Главная')}${tabBtn('calendar','📅','Календарь')}${tabBtn('work','💼','Работа')}${tabBtn('tasks','📝','Задачи')}${tabBtn('family','👨‍👩‍👧','Семья')}
+    </div>
+    ${modal==='member'?memberModal():modal==='task'?taskModal():modal==='event'?eventModal():modal==='shift'?shiftModal():''}`;
+}
+function tabBtn(id,icon,label){return `<button class="tab ${tab===id?'active':''}" onclick="tab='${id}';render()"><span class="ti">${icon}</span>${label}</button>`;}
+function openAdd(){
+  modal={family:'member',calendar:'event',work:'shift',tasks:'task',dashboard:'task'}[tab];
+  if(modal==='shift'){selectedDates=new Set();calYear=NOW.getFullYear();calMonth=NOW.getMonth();modalMemberSel=state.members[0]?.id||null;modalTypeSel='work';}
+  if(modal==='member'){modalRoleValue='Родитель';modalCustomRole='';}
+  render();
+}
+function closeModal(){selectedDates=new Set();modal=null;render();}
+
+function onboardingView(){
+  return `<div class="onb"><h1>Family Hub</h1><p>Всё, что важно вашей семье — в одном месте.</p>
+    <input id="fam" placeholder="Название семьи, напр. «Наша семья»">
+    <input id="me" placeholder="Ваше имя">
+    <button class="btn primary" onclick="startFamily()">Начать</button></div>`;
+}
+function startFamily(){
+  const fam=document.getElementById('fam').value.trim()||'Моя семья';
+  const me=document.getElementById('me').value.trim()||'Я';
+  state.family={name:fam};
+  state.members.push({id:uid(),name:me,role:'parent',color:COLORS[0]});
+  save();render();
+}
+
+function dashboardView(){
+  const upcoming=[...state.events].filter(e=>e.date>=todayISO()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,3);
+  const todayShifts=state.shifts.filter(s=>s.date===todayISO());
+  const openTasks=state.tasks.filter(t=>t.status!=='done').slice(0,4);
+  let html=`<div class="section-title">Сейчас</div>`;
+  html+=state.members.length?state.members.map(m=>{
+    const shift=todayShifts.find(s=>s.memberId===m.id);
+    return `<div class="card row"><div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
+      <div><div>${m.name}</div><div class="muted">${shift?(SHIFT_TYPES[shift.type]==='Работа'?'💼 Работа':SHIFT_TYPES[shift.type]):'🏠 Свободен(на)'}</div></div></div>`;
+  }).join(''):`<div class="empty"><span class="icon">👨‍👩‍👧</span>Добавьте членов семьи</div>`;
+
+  html+=`<div class="section-title">Задачи</div>`;
+  html+=openTasks.length?openTasks.map(taskRow).join(''):`<div class="empty"><span class="icon">✨</span>Все задачи выполнены</div>`;
+
+  html+=`<div class="section-title">Ближайшее</div>`;
+  html+=upcoming.length?upcoming.map(eventRow).join(''):`<div class="empty"><span class="icon">📅</span>Ничего не запланировано</div>`;
+  return html;
+}
+
+function familyView(){
+  if(!state.members.length) return `<div class="empty"><span class="icon">👨‍👩‍👧</span>В семье пока никого нет</div>`;
+  return state.members.map(m=>`<div class="card row">
+      <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
+      <div style="flex:1"><div>${m.name}</div><div class="muted">${roleLabel(m.role)}</div></div>
+      <button class="iconbtn" onclick="deleteMember('${m.id}')">🗑</button></div>`).join('');
+}
+
+function taskRow(t){
+  const a=state.members.find(m=>m.id===t.assignee);
+  return `<div class="card row"><div class="check ${t.status==='done'?'done':''}" onclick="toggleTask('${t.id}')">${t.status==='done'?'✓':''}</div>
+    <div style="flex:1"><div class="taskTitle ${t.status==='done'?'done':''}">${t.title}</div>
+    <div class="muted">${a?a.name+' · ':''}${t.due?('до '+fmtDate(t.due)):'без срока'}${isOverdue(t)?' · просрочено':''}</div></div>
+    <button class="iconbtn" onclick="deleteTask('${t.id}')">🗑</button></div>`;
+}
+function tasksView(){
+  if(!state.tasks.length) return `<div class="empty"><span class="icon">✨</span>Все задачи выполнены<br>Отличная работа!</div>`;
+  const open=state.tasks.filter(t=>t.status!=='done'), done=state.tasks.filter(t=>t.status==='done');
+  return open.map(taskRow).join('')+(done.length?`<div class="section-title">Выполнено</div>`+done.map(taskRow).join(''):'');
+}
+
+function eventRow(e){
+  return `<div class="card row"><div class="avatar" style="background:var(--accent)">${EVENT_ICON[e.category]}</div>
+    <div style="flex:1"><div>${e.title}</div><div class="muted">${fmtDate(e.date)}${e.time?', '+e.time:''} · ${EVENT_CATS[e.category]}</div></div>
+    <button class="iconbtn" onclick="deleteEvent('${e.id}')">🗑</button></div>`;
+}
+function calendarView(){
+  const sorted=[...state.events].sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+  if(!sorted.length) return `<div class="empty"><span class="icon">📅</span>Сегодня ничего не запланировано<br>Добавьте первое событие</div>`;
+  return sorted.map(eventRow).join('');
+}
+
+function shiftRow(s){
+  const m=state.members.find(x=>x.id===s.memberId);
+  return `<div class="card tsrow"><div class="row"><div class="avatar" style="background:${m?m.color:'#999'}">${m?initials(m.name):'?'}</div>
+    <div><div>${m?m.name:'Без имени'}</div><div class="muted">${SHIFT_TYPES[s.type]} · ${fmtDate(s.date)}</div></div></div>
+    <button class="iconbtn" onclick="deleteShift('${s.id}')">🗑</button></div>`;
+}
+function workView(){
+  if(!state.members.length) return `<div class="empty"><span class="icon">💼</span>Сначала добавьте членов семьи на вкладке «Семья»</div>`;
+  const sorted=[...state.shifts].sort((a,b)=>a.date.localeCompare(b.date));
+  if(!sorted.length) return `<div class="empty"><span class="icon">💼</span>Рабочих смен пока нет<br>Добавьте график</div>`;
+  return sorted.map(shiftRow).join('');
+}
+
+function memberModal(){
+  return `<div class="overlay" onclick="if(event.target===this){modal=null;render();}"><div class="modal">
+    <h2>Добавить члена семьи</h2><label>Имя</label><input id="mName" placeholder="Имя">
+    <label>Роль</label><select id="mRole" onchange="modalRoleValue=this.value;render()">
+      ${allRoles().map(r=>`<option value="${r}" ${r===modalRoleValue?'selected':''}>${r}</option>`).join('')}
+      <option value="__custom__" ${modalRoleValue==='__custom__'?'selected':''}>➕ Своя роль…</option>
+    </select>
+    ${modalRoleValue==='__custom__'?`<input id="mRoleCustom" placeholder="Например, Бабушка, Няня…" value="${modalCustomRole}" oninput="modalCustomRole=this.value">`:''}
+    <label>Цвет</label><div class="swatches">${COLORS.map((c,i)=>`<div class="swatch ${i===0?'sel':''}" style="background:${c}" onclick="pickColor(this,'${c}')"></div>`).join('')}</div>
+    <button class="btn primary" onclick="addMember()">Добавить</button><button class="btn ghost" onclick="modal=null;render()">Отмена</button></div></div>`;
+}
+function pickColor(el,c){pickedColor=c;document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));el.classList.add('sel');}
+function addMember(){
+  const name=document.getElementById('mName').value.trim();if(!name)return;
+  let role=modalRoleValue;
+  if(role==='__custom__'){
+    role=(document.getElementById('mRoleCustom')?.value||'').trim();
+    if(!role)return;
+    if(!BASE_ROLES.includes(role)&&!state.customRoles.includes(role)) state.customRoles.push(role);
+  }
+  state.members.push({id:uid(),name,role,color:pickedColor});
+  pickedColor=COLORS[0];modal=null;modalRoleValue='Родитель';modalCustomRole='';save();render();
+}
+function deleteMember(id){state.members=state.members.filter(m=>m.id!==id);state.tasks.forEach(t=>{if(t.assignee===id)t.assignee=null;});state.shifts=state.shifts.filter(s=>s.memberId!==id);save();render();}
+
+function taskModal(){
+  return `<div class="overlay" onclick="if(event.target===this){modal=null;render();}"><div class="modal">
+    <h2>Добавить задачу</h2><label>Название</label><input id="tTitle" placeholder="Например, купить продукты">
+    <label>Срок</label><input id="tDue" type="date">
+    <label>Ответственный</label><select id="tAssignee"><option value="">Не назначено</option>${state.members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select>
+    <button class="btn primary" onclick="addTask()">Добавить</button><button class="btn ghost" onclick="modal=null;render()">Отмена</button></div></div>`;
+}
+function addTask(){
+  const title=document.getElementById('tTitle').value.trim();if(!title)return;
+  state.tasks.push({id:uid(),title,due:document.getElementById('tDue').value||null,assignee:document.getElementById('tAssignee').value||null,status:'todo'});
+  modal=null;save();render();
+}
+function toggleTask(id){const t=state.tasks.find(x=>x.id===id);if(t)t.status=t.status==='done'?'todo':'done';save();render();}
+function deleteTask(id){state.tasks=state.tasks.filter(t=>t.id!==id);save();render();}
+
+function eventModal(){
+  return `<div class="overlay" onclick="if(event.target===this){modal=null;render();}"><div class="modal">
+    <h2>Добавить событие</h2><label>Название</label><input id="eTitle" placeholder="Название события">
+    <label>Дата</label><input id="eDate" type="date" value="${todayISO()}">
+    <label>Время (необязательно)</label><input id="eTime" type="time">
+    <label>Категория</label><select id="eCat">${Object.entries(EVENT_CATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+    <button class="btn primary" onclick="addEvent()">Добавить</button><button class="btn ghost" onclick="modal=null;render()">Отмена</button></div></div>`;
+}
+function addEvent(){
+  const title=document.getElementById('eTitle').value.trim();if(!title)return;
+  state.events.push({id:uid(),title,date:document.getElementById('eDate').value||todayISO(),time:document.getElementById('eTime').value||'',category:document.getElementById('eCat').value});
+  modal=null;save();render();
+}
+function deleteEvent(id){state.events=state.events.filter(e=>e.id!==id);save();render();}
+
+function isoDate(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function buildCalGrid(){
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const offset=(new Date(calYear,calMonth,1).getDay()+6)%7; // Monday-start
+  let cells='';
+  for(let i=0;i<offset;i++) cells+=`<div class="calday empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const iso=isoDate(calYear,calMonth,d);
+    cells+=`<div class="calday ${selectedDates.has(iso)?'sel':''}" onclick="toggleDate('${iso}')">${d}</div>`;
+  }
+  return cells;
+}
+function shiftModal(){
+  if(!state.members.length){modal=null;return '';}
+  return `<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <h2>Добавить график</h2>
+    <label>Член семьи</label><select id="sMember" onchange="modalMemberSel=this.value">${state.members.map(m=>`<option value="${m.id}" ${m.id===modalMemberSel?'selected':''}>${m.name}</option>`).join('')}</select>
+    <label>Тип</label><select id="sType" onchange="modalTypeSel=this.value">${Object.entries(SHIFT_TYPES).map(([k,v])=>`<option value="${k}" ${k===modalTypeSel?'selected':''}>${v}</option>`).join('')}</select>
+    <label>Дни (можно выбрать сразу несколько)</label>
+    <div class="calhead"><button class="calnav" onclick="prevMonth()">‹</button><div>${MONTHS[calMonth]} ${calYear}</div><button class="calnav" onclick="nextMonth()">›</button></div>
+    <div class="calgrid">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(w=>`<div class="calwd">${w}</div>`).join('')}${buildCalGrid()}</div>
+    <div class="quickrow">
+      <button class="qbtn" onclick="selectWeekdays()">Будни</button>
+      <button class="qbtn" onclick="selectWeekends()">Выходные</button>
+      <button class="qbtn" onclick="selectedDates=new Set();render()">Очистить</button>
+    </div>
+    <div class="muted" style="margin-top:8px">Выбрано дней: ${selectedDates.size}</div>
+    <button class="btn primary" onclick="addShiftBulk()" ${selectedDates.size?'':'disabled style="opacity:.5"'}>Добавить${selectedDates.size?' ('+selectedDates.size+')':''}</button>
+    <button class="btn ghost" onclick="closeModal()">Отмена</button>
+  </div></div>`;
+}
+function toggleDate(iso){selectedDates.has(iso)?selectedDates.delete(iso):selectedDates.add(iso);render();}
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}render();}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}render();}
+function selectWeekdays(){
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  selectedDates=new Set();
+  for(let d=1;d<=daysInMonth;d++){const dow=new Date(calYear,calMonth,d).getDay();if(dow>=1&&dow<=5)selectedDates.add(isoDate(calYear,calMonth,d));}
+  render();
+}
+function selectWeekends(){
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  selectedDates=new Set();
+  for(let d=1;d<=daysInMonth;d++){const dow=new Date(calYear,calMonth,d).getDay();if(dow===0||dow===6)selectedDates.add(isoDate(calYear,calMonth,d));}
+  render();
+}
+function addShiftBulk(){
+  const memberId=modalMemberSel;
+  const type=modalTypeSel;
+  if(!memberId||!selectedDates.size)return;
+  selectedDates.forEach(date=>{
+    state.shifts=state.shifts.filter(s=>!(s.memberId===memberId&&s.date===date)); // replace existing shift that day
+    state.shifts.push({id:uid(),memberId,date,type});
+  });
+  selectedDates=new Set();modal=null;save();render();
+}
+function deleteShift(id){state.shifts=state.shifts.filter(s=>s.id!==id);save();render();}
+
+render();
+</script>
+</body>
+</html>
